@@ -1,0 +1,16 @@
+{
+  "name": "\u5236\u9020\u4e2d\u5fc3\u5bbf\u820d\u7ba1\u7406\u5e73\u53f0",
+  "short_name": "\u5bbf\u820d\u7ba1\u7406",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#edf4fb",
+  "theme_color": "#2f73f6",
+  "icons": [
+    {
+      "src": "app-icon.svg",
+      "sizes": "128x128",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

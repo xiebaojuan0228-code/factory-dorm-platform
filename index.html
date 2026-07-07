@@ -1,0 +1,3072 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2f73f6">
+  <title>制造中心宿舍管理平台</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <style>
+    :root {
+      --primary: #2f73f6;
+      --primary-dark: #164fbf;
+      --ink: #101828;
+      --muted: #667085;
+      --line: #e2e8f3;
+      --page: #edf4fb;
+      --surface: #ffffff;
+      --green: #24a875;
+      --amber: #e9a51a;
+      --coral: #ea6547;
+      --violet: #7e61d5;
+      --cyan: #19aeb8;
+      --slate: #475467;
+      --shadow: 0 10px 26px rgba(31, 67, 137, 0.08);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      color-scheme: light;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 4%, rgba(47, 115, 246, 0.18), transparent 32%),
+        radial-gradient(circle at 92% 18%, rgba(36, 168, 117, 0.12), transparent 26%),
+        linear-gradient(180deg, #f8fbff 0%, var(--page) 54%, #f6fbff 100%);
+    }
+
+    button, input, select, textarea { font: inherit; }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    textarea { resize: vertical; }
+
+    .app {
+      width: min(100vw, 430px);
+      min-height: 100dvh;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(250, 253, 255, 0.98), rgba(239, 246, 255, 0.97));
+      box-shadow: 0 0 0 1px rgba(17, 24, 39, 0.04), 0 20px 80px rgba(15, 23, 42, 0.13);
+    }
+
+    body.locked .app-content,
+    body.locked .tabbar {
+      display: none;
+    }
+
+    .login-screen {
+      min-height: 100dvh;
+      display: none;
+      padding: 22px 18px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    body.locked .login-screen { display: flex; }
+
+    .login-card {
+      width: 100%;
+      overflow: hidden;
+      border-radius: 26px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.82);
+      box-shadow: var(--shadow);
+    }
+
+    .login-hero {
+      min-height: 210px;
+      position: relative;
+      padding: 24px;
+      color: #fff;
+      isolation: isolate;
+      background: linear-gradient(135deg, #1f67e8, #39a6ff);
+    }
+
+    .login-hero img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 63% center;
+      z-index: -2;
+    }
+
+    .login-hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background:
+        linear-gradient(90deg, rgba(12, 65, 165, 0.92), rgba(31, 103, 232, 0.62), rgba(31, 103, 232, 0.08)),
+        linear-gradient(180deg, rgba(11, 44, 116, 0.16), rgba(11, 44, 116, 0.5));
+    }
+
+    .login-hero h1 {
+      margin: 0;
+      max-width: 270px;
+      font-size: 28px;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    .login-hero p {
+      margin: 12px 0 0;
+      max-width: 250px;
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .login-form {
+      padding: 18px;
+      display: grid;
+      gap: 13px;
+    }
+
+    .app-content {
+      padding: 10px 14px 92px;
+    }
+
+    .statusbar {
+      height: 34px;
+      padding: 7px 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .back-fab {
+      display: none;
+      width: fit-content;
+      min-height: 34px;
+      margin: 0 0 8px 4px;
+      padding: 7px 11px;
+      align-items: center;
+      gap: 5px;
+      border-radius: 12px;
+      color: #344054;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #e2e8f3;
+      font-size: 13px;
+      font-weight: 850;
+      box-shadow: 0 8px 20px rgba(31, 67, 137, 0.08);
+    }
+
+    body.has-back .back-fab {
+      display: inline-flex;
+    }
+
+    .back-fab svg {
+      transform: rotate(180deg);
+    }
+
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #101828;
+    }
+
+    .signal {
+      display: inline-grid;
+      grid-template-columns: repeat(4, 3px);
+      align-items: end;
+      gap: 2px;
+      height: 14px;
+    }
+
+    .signal span {
+      width: 3px;
+      border-radius: 3px;
+      background: currentColor;
+    }
+
+    .signal span:nth-child(1) { height: 5px; }
+    .signal span:nth-child(2) { height: 8px; }
+    .signal span:nth-child(3) { height: 11px; }
+    .signal span:nth-child(4) { height: 14px; }
+
+    .wifi {
+      width: 17px;
+      height: 13px;
+      border: 3px solid currentColor;
+      border-left-color: transparent;
+      border-right-color: transparent;
+      border-bottom-color: transparent;
+      border-radius: 16px 16px 0 0;
+      position: relative;
+    }
+
+    .wifi::after {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 5px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .battery {
+      width: 26px;
+      height: 13px;
+      border: 2px solid currentColor;
+      border-radius: 4px;
+      position: relative;
+    }
+
+    .battery::before {
+      content: "";
+      position: absolute;
+      right: -4px;
+      top: 3px;
+      width: 2px;
+      height: 5px;
+      border-radius: 0 2px 2px 0;
+      background: currentColor;
+    }
+
+    .battery::after {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      width: 14px;
+      border-radius: 2px;
+      background: currentColor;
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 6px 14px;
+    }
+
+    .title-block h1 {
+      margin: 0;
+      font-size: 25px;
+      line-height: 1.15;
+      letter-spacing: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .title-block p,
+    .screen-title p,
+    .muted {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.42;
+    }
+
+    .verified {
+      width: 26px;
+      height: 26px;
+      border-radius: 9px;
+      display: inline-grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), #65a7ff);
+      box-shadow: 0 8px 18px rgba(47, 115, 246, 0.28);
+      flex: 0 0 auto;
+    }
+
+    .bell {
+      position: relative;
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      color: #1d2939;
+      background: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 10px 24px rgba(70, 93, 139, 0.12);
+      flex: 0 0 auto;
+    }
+
+    .badge {
+      position: absolute;
+      top: 4px;
+      right: 3px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 5px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: var(--coral);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      border: 2px solid #fff;
+    }
+
+    .view {
+      display: none;
+      animation: rise 0.22s ease-out;
+    }
+
+    .view.active { display: block; }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero {
+      min-height: 174px;
+      overflow: hidden;
+      position: relative;
+      border-radius: 20px;
+      color: #fff;
+      isolation: isolate;
+      background: linear-gradient(135deg, #1f6af5 0%, #42a2ff 100%);
+      box-shadow: 0 18px 36px rgba(48, 107, 230, 0.22);
+    }
+
+    .hero img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 68% center;
+      z-index: -2;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background:
+        linear-gradient(90deg, rgba(17, 85, 212, 0.96), rgba(41, 123, 244, 0.72), rgba(41, 123, 244, 0.08)),
+        linear-gradient(180deg, rgba(12, 49, 142, 0.06), rgba(12, 49, 142, 0.34));
+    }
+
+    .hero-copy {
+      padding: 25px 20px;
+      max-width: 276px;
+    }
+
+    .hero h2 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.16;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      margin: 11px 0 14px;
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 750;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 32px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.22);
+      color: inherit;
+      font-size: 12px;
+      font-weight: 850;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      backdrop-filter: blur(10px);
+    }
+
+    .panel {
+      margin-top: 10px;
+      padding: 15px 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.78);
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 13px;
+    }
+
+    .panel h2,
+    .screen-title h2 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .screen-title {
+      padding: 6px 4px 10px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .link-button,
+    .text-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: #475467;
+      background: transparent;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .text-button.danger { color: var(--coral); }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .stat {
+      min-height: 90px;
+      padding: 11px 5px 9px;
+      border-radius: 13px;
+      text-align: center;
+      display: grid;
+      align-content: center;
+      gap: 5px;
+      border: 1px solid rgba(228, 234, 244, 0.7);
+    }
+
+    .stat.blue { background: #edf5ff; color: var(--primary); }
+    .stat.coral { background: #fff1ec; color: var(--coral); }
+    .stat.amber { background: #fff8e8; color: var(--amber); }
+    .stat.green { background: #ecfbf4; color: var(--green); }
+
+    .stat-icon {
+      width: 32px;
+      height: 32px;
+      margin: 0 auto 1px;
+      display: grid;
+      place-items: center;
+      border-radius: 11px;
+      color: #fff;
+      background: currentColor;
+    }
+
+    .stat-icon svg { color: #fff; }
+
+    .stat label {
+      color: #475467;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .stat strong {
+      color: #0b1220;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 17px 7px;
+      padding: 2px 2px 1px;
+    }
+
+    .quick {
+      min-width: 0;
+      background: transparent;
+      color: #111827;
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 850;
+      line-height: 1.18;
+    }
+
+    .quick-icon,
+    .stock-icon {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45), 0 10px 22px rgba(20, 43, 83, 0.1);
+    }
+
+    .stock-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+    }
+
+    .g-blue { background: linear-gradient(145deg, #4387ff, #2467df); }
+    .g-green { background: linear-gradient(145deg, #41c987, #20a86c); }
+    .g-violet { background: linear-gradient(145deg, #a47af2, #7455ce); }
+    .g-amber { background: linear-gradient(145deg, #ffc94d, #eea710); }
+    .g-coral { background: linear-gradient(145deg, #ff8567, #ef5c3f); }
+    .g-cyan { background: linear-gradient(145deg, #42d1c2, #17a7ba); }
+    .g-slate { background: linear-gradient(145deg, #5f6f89, #344054); }
+
+    .task-list,
+    .notice-list,
+    .record-list,
+    .stock-list,
+    .chat-log,
+    .recipient-grid,
+    .settings {
+      display: grid;
+      gap: 10px;
+    }
+
+    .task {
+      min-height: 46px;
+      display: grid;
+      grid-template-columns: 26px 1fr auto auto;
+      gap: 9px;
+      align-items: center;
+      border-bottom: 1px solid #edf1f7;
+      padding-bottom: 9px;
+    }
+
+    .task:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .task input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+    }
+
+    .task-title {
+      min-width: 0;
+      display: grid;
+      gap: 3px;
+    }
+
+    .task-title strong {
+      min-width: 0;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .task.done .task-title strong {
+      color: #98a2b3;
+      text-decoration: line-through;
+    }
+
+    .tag {
+      display: inline-grid;
+      place-items: center;
+      min-height: 24px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 850;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .tag.blue { color: var(--primary); background: #eaf2ff; }
+    .tag.green { color: var(--green); background: #e9fbf3; }
+    .tag.amber { color: #bb7a03; background: #fff5d6; }
+    .tag.coral { color: #c14324; background: #ffeee8; }
+    .tag.violet { color: var(--violet); background: #f2edff; }
+    .tag.cyan { color: var(--cyan); background: #e8fbfc; }
+    .tag.gray { color: #667085; background: #f2f4f7; }
+
+    .icon-button {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      color: #475467;
+      background: #f2f6fb;
+      border: 1px solid #e4ebf5;
+    }
+
+    .icon-button.danger {
+      color: var(--coral);
+      background: #fff0eb;
+      border-color: #ffe0d6;
+    }
+
+    .notice {
+      min-height: 42px;
+      display: grid;
+      grid-template-columns: 30px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      border-bottom: 1px solid #edf1f7;
+      padding-bottom: 10px;
+    }
+
+    .notice:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .notice-icon {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: #ecf4ff;
+      color: var(--primary);
+    }
+
+    .notice strong {
+      min-width: 0;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .notice time {
+      color: #667085;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .assistant-card {
+      min-height: 130px;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1fr 128px;
+      align-items: center;
+      padding: 17px;
+      position: relative;
+      border: 1px solid rgba(47, 115, 246, 0.14);
+      background: linear-gradient(135deg, #eef7ff, #ffffff 46%, #edf8f6);
+    }
+
+    .assistant-card img {
+      width: 170px;
+      height: 124px;
+      object-fit: cover;
+      object-position: right bottom;
+      justify-self: end;
+      border-radius: 18px;
+      mix-blend-mode: multiply;
+    }
+
+    .assistant-card h2 {
+      color: var(--primary);
+      font-size: 20px;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+      min-height: 40px;
+      padding: 10px 14px;
+      border-radius: 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      font-weight: 850;
+      line-height: 1.05;
+      text-align: center;
+    }
+
+    .primary-btn {
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), #1a66e8);
+      box-shadow: 0 12px 20px rgba(47, 115, 246, 0.2);
+    }
+
+    .secondary-btn {
+      color: #344054;
+      background: #f3f7fc;
+      border: 1px solid #e1e8f3;
+    }
+
+    .danger-btn {
+      color: #fff;
+      background: linear-gradient(135deg, var(--coral), #d2472a);
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label,
+    .choice-title {
+      color: #344054;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      color: var(--ink);
+      border: 1px solid #dfe6f1;
+      border-radius: 13px;
+      background: #f9fbfe;
+      outline: none;
+    }
+
+    .field textarea {
+      min-height: 86px;
+      line-height: 1.45;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      border-color: rgba(47, 115, 246, 0.68);
+      box-shadow: 0 0 0 3px rgba(47, 115, 246, 0.1);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .three-col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .check-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    .check-card,
+    .recipient {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 10px;
+      border-radius: 13px;
+      border: 1px solid #dfe6f1;
+      background: #f9fbfe;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .check-card input,
+    .recipient input,
+    .remember-row input {
+      width: 17px;
+      height: 17px;
+      accent-color: var(--primary);
+      flex: 0 0 auto;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .segmented.result-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .segmented input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .segmented span {
+      min-height: 40px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border: 1px solid #dfe6f1;
+      border-radius: 13px;
+      background: #f9fbfe;
+      color: #475467;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .segmented.result-grid span {
+      min-height: 46px;
+      padding: 7px 8px;
+      line-height: 1.25;
+    }
+
+    .segmented input:checked + span {
+      border-color: rgba(47, 115, 246, 0.42);
+      background: #eaf2ff;
+      color: var(--primary);
+    }
+
+    .remember-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: #475467;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .remember-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .record {
+      padding: 12px;
+      display: grid;
+      gap: 9px;
+      border: 1px solid #e3eaf4;
+      border-radius: 14px;
+      background: #fbfdff;
+    }
+
+    .record-top,
+    .mini-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .mini-row {
+      align-items: center;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .record strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.3;
+    }
+
+    .record small,
+    .task-title small {
+      color: #667085;
+      font-size: 12px;
+      font-weight: 750;
+      line-height: 1.35;
+    }
+
+    .record p {
+      margin: 0;
+      color: #344054;
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 650;
+    }
+
+    .stock {
+      display: grid;
+      grid-template-columns: 42px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid #e3eaf4;
+      background: #fbfdff;
+    }
+
+    .stock strong { display: block; line-height: 1.25; }
+
+    .material-kpis {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .mini-stat {
+      min-height: 76px;
+      padding: 12px;
+      border-radius: 14px;
+      background: #f7fbff;
+      border: 1px solid #e3eaf4;
+      display: grid;
+      align-content: center;
+      gap: 4px;
+    }
+
+    .mini-stat span {
+      color: #667085;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .mini-stat strong {
+      font-size: 20px;
+      line-height: 1.1;
+    }
+
+    .stock-detail {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .stock-meta,
+    .stock-cost {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .stock-meta span,
+    .stock-cost span {
+      min-height: 22px;
+      padding: 4px 7px;
+      border-radius: 999px;
+      color: #475467;
+      background: #f2f6fb;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .stock-warning {
+      min-width: 88px;
+      display: grid;
+      justify-items: end;
+      gap: 6px;
+      text-align: right;
+    }
+
+    .stock-warning strong {
+      font-size: 18px;
+    }
+
+    .forecast-form {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #edf1f7;
+    }
+
+    .stock-meter {
+      width: 82px;
+      height: 8px;
+      border-radius: 999px;
+      background: #edf1f7;
+      overflow: hidden;
+    }
+
+    .stock-meter span {
+      display: block;
+      width: var(--stock, 60%);
+      max-width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+    }
+
+    .stock.low .stock-meter span {
+      background: linear-gradient(90deg, var(--coral), var(--amber));
+    }
+
+    .chart-grid { display: grid; gap: 12px; }
+
+    .metric-card {
+      padding: 14px;
+      border-radius: 15px;
+      border: 1px solid #e3eaf4;
+      background: #fbfdff;
+      display: grid;
+      gap: 10px;
+    }
+
+    .metric-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .bar {
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #edf1f7;
+    }
+
+    .bar span {
+      display: block;
+      width: var(--value, 50%);
+      max-width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--primary), var(--cyan));
+    }
+
+    .module-head {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .module-head h2 { margin: 0; }
+
+    .photo-preview {
+      display: none;
+      min-height: 36px;
+      padding: 9px 10px;
+      border-radius: 12px;
+      background: #edf5ff;
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 850;
+      line-height: 1.35;
+    }
+
+    .chat-log {
+      max-height: 260px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .chat-message {
+      padding: 11px 12px;
+      border-radius: 14px;
+      max-width: 88%;
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 650;
+    }
+
+    .chat-message.user {
+      justify-self: end;
+      background: var(--primary);
+      color: #fff;
+      border-bottom-right-radius: 5px;
+    }
+
+    .chat-message.ai {
+      justify-self: start;
+      background: #f1f5fb;
+      color: #344054;
+      border-bottom-left-radius: 5px;
+    }
+
+    .chat-input {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .profile {
+      display: grid;
+      grid-template-columns: 58px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .avatar {
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      color: #fff;
+      background: linear-gradient(145deg, var(--primary), var(--cyan));
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .setting-row {
+      min-height: 46px;
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 14px;
+      background: #fbfdff;
+      border: 1px solid #e3eaf4;
+    }
+
+    .switch {
+      width: 46px;
+      height: 26px;
+      border-radius: 999px;
+      background: #d0d5dd;
+      padding: 3px;
+      display: flex;
+      justify-content: flex-start;
+    }
+
+    .switch.on {
+      justify-content: flex-end;
+      background: var(--green);
+    }
+
+    .switch span {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+    }
+
+    .empty {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f6f9fd;
+      color: #667085;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 90px;
+      transform: translateX(-50%) translateY(20px);
+      width: min(360px, calc(100% - 34px));
+      min-height: 44px;
+      display: grid;
+      place-items: center;
+      padding: 11px 16px;
+      border-radius: 14px;
+      background: rgba(16, 24, 40, 0.92);
+      color: #fff;
+      font-weight: 850;
+      font-size: 13px;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.22s ease;
+      z-index: 30;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .tabbar {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: min(100vw, 430px);
+      min-height: 78px;
+      padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.97);
+      border-top: 1px solid rgba(218, 226, 238, 0.9);
+      box-shadow: 0 -12px 30px rgba(31, 67, 137, 0.08);
+    }
+
+    .tab {
+      min-width: 0;
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 3px;
+      border-radius: 14px;
+      color: #667085;
+      background: transparent;
+      font-size: 11px;
+      font-weight: 850;
+      line-height: 1.1;
+    }
+
+    .tab svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .tab.active {
+      color: var(--primary);
+      background: #edf5ff;
+    }
+
+    svg.icon {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .defs {
+      position: absolute;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+    }
+
+    @media (max-width: 374px) {
+      .app-content { padding-inline: 10px; }
+      .title-block h1 { font-size: 22px; }
+      .hero-copy { padding: 22px 17px; max-width: 248px; }
+      .stat-grid { gap: 7px; }
+      .quick-grid { gap: 15px 3px; }
+      .assistant-card { grid-template-columns: 1fr 106px; }
+      .assistant-card img { width: 142px; }
+      .task { grid-template-columns: 24px 1fr auto; }
+      .task .tag { display: none; }
+      .stock { grid-template-columns: 42px 1fr; }
+      .stock-warning {
+        grid-column: 2;
+        justify-items: start;
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body class="locked">
+  <svg class="defs" aria-hidden="true">
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m20 6-11 11-5-5"></path></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10.5 9-7 9 7"></path><path d="M5 9.5V21h14V9.5"></path><path d="M9 21v-7h6v7"></path></symbol>
+    <symbol id="i-clipboard" viewBox="0 0 24 24"><path d="M9 4h6"></path><path d="M9 2h6v4H9z"></path><path d="M6 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1"></path><path d="m9 14 2 2 4-5"></path></symbol>
+    <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5 5L3 18v3h3l6.7-6.7a4 4 0 0 0 5-5l-2.8 2.8-2.8-2.8z"></path></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 19V5"></path><path d="M4 19h16"></path><path d="M8 16v-5"></path><path d="M12 16V8"></path><path d="M16 16v-3"></path></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0"></path><circle cx="12" cy="7" r="4"></circle></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path><path d="m9 12 2 2 4-5"></path></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M14 5h3l2 3h2v11H3V8h2l2-3h3"></path><circle cx="12" cy="13" r="4"></circle></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="m21 8-9-5-9 5 9 5z"></path><path d="M3 8v8l9 5 9-5V8"></path><path d="M12 13v8"></path></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H21"></path><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H21v20H6.5A2.5 2.5 0 0 1 4 19.5z"></path></symbol>
+    <symbol id="i-bot" viewBox="0 0 24 24"><path d="M12 8V4"></path><rect x="5" y="8" width="14" height="11" rx="4"></rect><circle cx="9" cy="13" r="1"></circle><circle cx="15" cy="13" r="1"></circle><path d="M9 17h6"></path></symbol>
+    <symbol id="i-megaphone" viewBox="0 0 24 24"><path d="m3 11 18-7v16L3 13z"></path><path d="M7 14v5a2 2 0 0 0 2 2h1"></path></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14"></path><path d="M5 12h14"></path></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M6 6l1 15h10l1-15"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></symbol>
+    <symbol id="i-bed" viewBox="0 0 24 24"><path d="M3 7v10"></path><path d="M21 11v6"></path><path d="M3 13h18"></path><path d="M7 13V8h6a4 4 0 0 1 4 4v1"></path><path d="M3 17h18"></path></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="14.5" r="4.5"></circle><path d="M12 14.5h9"></path><path d="M17 14.5V17"></path><path d="M20 14.5V18"></path></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 1 0 9 9 9 9 0 1 1-9-9Z"></path></symbol>
+    <symbol id="i-log-in" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="m10 17 5-5-5-5"></path><path d="M15 12H3"></path></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4z"></path><path d="M22 2 11 13"></path></symbol>
+  </svg>
+
+  <div class="app">
+    <section class="login-screen">
+      <div class="login-card">
+        <div class="login-hero">
+          <img src="assets/dorm-ai-hero.png" alt="制造中心宿舍管理">
+          <h1>制造中心宿舍管理平台</h1>
+          <p>集体宿舍 · 巡检报修 · 群发通知 · 后勤台账</p>
+        </div>
+        <form class="login-form" id="loginForm">
+          <div class="field">
+            <label for="loginAccount">账号</label>
+            <input id="loginAccount" autocomplete="username" value="xiaobai" required>
+          </div>
+          <div class="field">
+            <label for="loginPassword">密码</label>
+            <input id="loginPassword" type="password" autocomplete="current-password" value="123456" required>
+          </div>
+          <div class="remember-row">
+            <label><input id="rememberLogin" type="checkbox" checked>记住账号密码</label>
+            <span>宿管：小白</span>
+          </div>
+          <button class="primary-btn" type="submit"><svg class="icon"><use href="#i-log-in"></use></svg>登录</button>
+        </form>
+      </div>
+    </section>
+
+    <div class="app-content">
+      <div class="statusbar" aria-hidden="true">
+        <span>9:41</span>
+        <span class="status-icons">
+          <span class="signal"><span></span><span></span><span></span><span></span></span>
+          <span class="wifi"></span>
+          <span class="battery"></span>
+        </span>
+      </div>
+      <button class="back-fab" type="button" id="backButton"><svg class="icon"><use href="#i-arrow"></use></svg>返回</button>
+
+      <section class="view active" data-view="home">
+        <header class="top">
+          <div class="title-block">
+            <h1>制造中心宿舍 <span class="verified"><svg class="icon"><use href="#i-check"></use></svg></span></h1>
+            <p>值班宿管：<span data-profile-name>小白</span> · A/B/C/D栋</p>
+          </div>
+          <button class="bell" type="button" data-open="broadcast" aria-label="群发通知">
+            <svg class="icon"><use href="#i-bell"></use></svg>
+            <span class="badge" id="noticeCount">0</span>
+          </button>
+        </header>
+
+        <section class="hero">
+          <img src="assets/dorm-ai-hero.png" alt="宿舍楼与AI助手插画">
+          <div class="hero-copy">
+            <h2>Hi，小白</h2>
+            <p id="todayText">今日巡检计划已生成</p>
+            <span class="pill" id="dutyPill">白班 · A/B栋 · 员工宿舍</span>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>今日数据</h2>
+            <button class="link-button" type="button" data-open="data">查看全部 <svg class="icon"><use href="#i-arrow"></use></svg></button>
+          </div>
+          <div class="stat-grid">
+            <div class="stat blue">
+              <span class="stat-icon"><svg class="icon"><use href="#i-home"></use></svg></span>
+              <label>巡检宿舍</label>
+              <strong id="statRooms">0</strong>
+            </div>
+            <div class="stat coral">
+              <span class="stat-icon"><svg class="icon"><use href="#i-shield"></use></svg></span>
+              <label>违规待办</label>
+              <strong id="statIssue">0</strong>
+            </div>
+            <div class="stat amber">
+              <span class="stat-icon"><svg class="icon"><use href="#i-wrench"></use></svg></span>
+              <label>待维修</label>
+              <strong id="statRepair">0</strong>
+            </div>
+            <div class="stat green">
+              <span class="stat-icon"><svg class="icon"><use href="#i-check"></use></svg></span>
+              <label>已完成</label>
+              <strong id="statDone">0</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>功能区</h2>
+            <button class="link-button" type="button" data-open="modules">更多 <svg class="icon"><use href="#i-arrow"></use></svg></button>
+          </div>
+          <div class="quick-grid" id="quickGrid"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>今日待办</h2>
+            <button class="link-button" type="button" data-open="todos">管理 <svg class="icon"><use href="#i-arrow"></use></svg></button>
+          </div>
+          <div class="task-list" id="homeTodoList"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>最新群发</h2>
+            <button class="link-button" type="button" data-open="broadcast">去群发 <svg class="icon"><use href="#i-arrow"></use></svg></button>
+          </div>
+          <div class="notice-list" id="noticeList"></div>
+        </section>
+
+        <section class="panel assistant-card">
+          <div>
+            <h2>AI宿舍助手</h2>
+            <p class="muted">巡检建议 · 数据汇总 · 通知文案</p>
+            <button class="primary-btn" type="button" data-open="assistant">立即咨询</button>
+          </div>
+          <img src="assets/dorm-ai-hero.png" alt="AI宿舍助手">
+        </section>
+      </section>
+
+      <section class="view" data-view="inspect">
+        <div class="screen-title">
+          <div>
+            <h2>巡检登记</h2>
+            <p>制造中心员工宿舍日常巡检</p>
+          </div>
+          <button class="secondary-btn" type="button" data-open="todos"><svg class="icon"><use href="#i-clock"></use></svg>计划</button>
+        </div>
+        <section class="panel">
+          <form class="form-grid" id="inspectForm">
+            <div class="three-col">
+              <div class="field">
+                <label for="inspectBuilding">楼栋</label>
+                <select id="inspectBuilding" required>
+                  <option>A栋</option>
+                  <option>B栋</option>
+                  <option>C栋</option>
+                  <option>D栋</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="inspectRoom">房号</label>
+                <input id="inspectRoom" inputmode="numeric" placeholder="308" required>
+              </div>
+              <div class="field">
+                <label for="inspectBed">床号</label>
+                <input id="inspectBed" placeholder="如 03床" required>
+              </div>
+            </div>
+            <input id="inspectReviewSource" type="hidden">
+            <div class="record" id="reviewMatchCard" style="display: none;">
+              <div class="record-top">
+                <div>
+                  <strong id="reviewMatchTitle">发现历史违规</strong>
+                  <small id="reviewMatchMeta">可作为复查记录关联</small>
+                </div>
+                <span class="tag amber">复查</span>
+              </div>
+              <p id="reviewMatchText"></p>
+              <div class="mini-row">
+                <button class="secondary-btn" type="button" id="useReviewMatch">关联复查</button>
+                <button class="text-button" type="button" id="clearReviewMatch">不关联</button>
+              </div>
+            </div>
+            <div>
+              <div class="choice-title">检查项</div>
+              <div class="check-grid" id="inspectItems">
+                <label class="check-card"><input type="checkbox" value="安全用电" checked>安全用电</label>
+                <label class="check-card"><input type="checkbox" value="消防通道" checked>消防通道</label>
+                <label class="check-card"><input type="checkbox" value="宿舍卫生" checked>宿舍卫生</label>
+                <label class="check-card"><input type="checkbox" value="门窗门禁" checked>门窗门禁</label>
+                <label class="check-card"><input type="checkbox" value="抽烟">抽烟</label>
+                <label class="check-card"><input type="checkbox" value="喝酒">喝酒</label>
+                <label class="check-card"><input type="checkbox" value="违规电器">违规电器</label>
+                <label class="check-card"><input type="checkbox" value="其他" id="inspectOtherCheck">其他</label>
+              </div>
+            </div>
+            <div class="field">
+              <label for="inspectOtherItem">其他检查项</label>
+              <input id="inspectOtherItem" placeholder="如 私自调换床位、卫生不达标等">
+            </div>
+            <div>
+              <div class="choice-title">结果</div>
+              <div class="segmented result-grid">
+                <label><input type="radio" name="inspectResult" value="违规第一次警告"><span>违规第一次警告</span></label>
+                <label><input type="radio" name="inspectResult" value="用电宣导"><span>用电宣导</span></label>
+                <label><input type="radio" name="inspectResult" value="严重警告取消住宿资格"><span>严重警告取消住宿资格</span></label>
+                <label><input type="radio" name="inspectResult" value="再犯"><span>再犯</span></label>
+                <label><input type="radio" name="inspectResult" value="合格" checked><span>合格</span></label>
+                <label><input type="radio" name="inspectResult" value="其他"><span>其他</span></label>
+              </div>
+            </div>
+            <div class="field">
+              <label for="inspectResultOther">其他结果说明</label>
+              <input id="inspectResultOther" placeholder="选择“其他”时填写">
+            </div>
+            <div class="field">
+              <label for="inspectNote">问题说明</label>
+              <textarea id="inspectNote" placeholder="如：308房03床抽烟，已现场拍照并第一次警告，明日复查。"></textarea>
+            </div>
+            <div class="field">
+              <label for="inspectPhoto">现场照片</label>
+              <input id="inspectPhoto" type="file" accept="image/*" capture="environment">
+              <div class="photo-preview" id="inspectPhotoName"></div>
+            </div>
+            <div class="actions">
+              <button class="secondary-btn" type="reset">清空</button>
+              <button class="primary-btn" type="submit"><svg class="icon"><use href="#i-check"></use></svg>提交巡检</button>
+            </div>
+          </form>
+        </section>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>巡检分析</h2>
+            <span class="tag gray">床号级统计</span>
+          </div>
+          <div class="material-kpis">
+            <div class="mini-stat"><span>总巡检</span><strong id="inspectTotalText">0条</strong></div>
+            <div class="mini-stat"><span>违规记录</span><strong id="inspectViolationText">0条</strong></div>
+            <div class="mini-stat"><span>复查记录</span><strong id="inspectReviewText">0条</strong></div>
+            <div class="mini-stat"><span>严重/再犯</span><strong id="inspectSeriousText">0条</strong></div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>巡检记录</h2>
+            <div class="mini-row">
+              <button class="text-button" type="button" id="exportInspectionData">导出分析</button>
+              <button class="text-button" type="button" id="toggleInspectDone">隐藏合格</button>
+            </div>
+          </div>
+          <div class="record-list" id="inspectionList"></div>
+        </section>
+      </section>
+
+      <section class="view" data-view="todos">
+        <div class="screen-title">
+          <div>
+            <h2>待办与巡检计划</h2>
+            <p>自定义事项 · 每日固定任务</p>
+          </div>
+        </div>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>新增待办</h2>
+          </div>
+          <form class="form-grid" id="todoForm">
+            <div class="field">
+              <label for="todoTitle">待办事项</label>
+              <input id="todoTitle" placeholder="如：D栋3F公共卫生复查" required>
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label for="todoType">类型</label>
+                <select id="todoType">
+                  <option>巡检</option>
+                  <option>复查</option>
+                  <option>维修</option>
+                  <option>安全</option>
+                  <option>入住</option>
+                  <option>物资</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="todoDue">时间</label>
+                <input id="todoDue" type="time" value="09:00">
+              </div>
+            </div>
+            <div class="actions">
+              <button class="secondary-btn" type="reset">清空</button>
+              <button class="primary-btn" type="submit"><svg class="icon"><use href="#i-plus"></use></svg>增加</button>
+            </div>
+          </form>
+        </section>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>每日巡检任务</h2>
+            <button class="link-button" type="button" id="generateScheduleNow">生成今日</button>
+          </div>
+          <form class="form-grid" id="scheduleForm">
+            <div class="two-col">
+              <div class="field">
+                <label for="scheduleTime">发布时间</label>
+                <input id="scheduleTime" type="time" value="08:30">
+              </div>
+              <div class="field">
+                <label for="scheduleEnabled">状态</label>
+                <select id="scheduleEnabled">
+                  <option value="true">每日自动</option>
+                  <option value="false">手动生成</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <div class="choice-title">巡检楼栋</div>
+              <div class="check-grid" id="scheduleBuildings">
+                <label class="check-card"><input type="checkbox" value="A栋" checked>A栋</label>
+                <label class="check-card"><input type="checkbox" value="B栋" checked>B栋</label>
+                <label class="check-card"><input type="checkbox" value="C栋">C栋</label>
+                <label class="check-card"><input type="checkbox" value="D栋">D栋</label>
+              </div>
+            </div>
+            <div>
+              <div class="choice-title">巡检楼层</div>
+              <div class="check-grid" id="scheduleFloors">
+                <label class="check-card"><input type="checkbox" value="1F">1F</label>
+                <label class="check-card"><input type="checkbox" value="2F" checked>2F</label>
+                <label class="check-card"><input type="checkbox" value="3F" checked>3F</label>
+                <label class="check-card"><input type="checkbox" value="4F">4F</label>
+                <label class="check-card"><input type="checkbox" value="5F">5F</label>
+                <label class="check-card"><input type="checkbox" value="6F">6F</label>
+              </div>
+            </div>
+            <button class="primary-btn" type="submit"><svg class="icon"><use href="#i-check"></use></svg>保存计划</button>
+          </form>
+        </section>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>全部待办</h2>
+            <button class="text-button danger" type="button" id="clearDoneTodos">清理已完成</button>
+          </div>
+          <div class="task-list" id="todoList"></div>
+        </section>
+      </section>
+
+      <section class="view" data-view="broadcast">
+        <div class="screen-title">
+          <div>
+            <h2>群发通知</h2>
+            <p>群组 · 楼栋 · 个人</p>
+          </div>
+        </div>
+        <section class="panel">
+          <form class="form-grid" id="broadcastForm">
+            <div class="field">
+              <label for="broadcastTitle">通知标题</label>
+              <input id="broadcastTitle" placeholder="如：今晚消防安全检查" required>
+            </div>
+            <div class="field">
+              <label for="broadcastContent">通知内容</label>
+              <textarea id="broadcastContent" placeholder="请各宿舍保持通道畅通，严禁私拉排插。" required></textarea>
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label for="broadcastLevel">重要程度</label>
+                <select id="broadcastLevel">
+                  <option>重要</option>
+                  <option>普通</option>
+                  <option>紧急</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="broadcastTime">发送方式</label>
+                <select id="broadcastTime">
+                  <option>立即发送</option>
+                  <option>晚班前发送</option>
+                  <option>明早发送</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <div class="choice-title">接收对象</div>
+              <div class="recipient-grid" id="recipientGrid"></div>
+            </div>
+            <div class="actions">
+              <button class="secondary-btn" type="button" id="draftBroadcast">生成文案</button>
+              <button class="primary-btn" type="submit"><svg class="icon"><use href="#i-send"></use></svg>群发</button>
+            </div>
+          </form>
+        </section>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>群发记录</h2>
+          </div>
+          <div class="record-list" id="broadcastLog"></div>
+        </section>
+      </section>
+
+      <section class="view" data-view="repair">
+        <div class="screen-title">
+          <div>
+            <h2>报修处理</h2>
+            <p>水电 · 门锁 · 空调 · 公区设施</p>
+          </div>
+        </div>
+        <section class="panel">
+          <form class="form-grid" id="repairForm">
+            <div class="two-col">
+              <div class="field">
+                <label for="repairLocation">位置</label>
+                <input id="repairLocation" placeholder="如 B栋308" required>
+              </div>
+              <div class="field">
+                <label for="repairType">类别</label>
+                <select id="repairType">
+                  <option>水电</option>
+                  <option>门锁</option>
+                  <option>空调</option>
+                  <option>家具</option>
+                  <option>消防</option>
+                  <option>公区设施</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <div class="choice-title">优先级</div>
+              <div class="segmented">
+                <label><input type="radio" name="repairPriority" value="普通" checked><span>普通</span></label>
+                <label><input type="radio" name="repairPriority" value="加急"><span>加急</span></label>
+                <label><input type="radio" name="repairPriority" value="安全隐患"><span>安全隐患</span></label>
+              </div>
+            </div>
+            <div class="field">
+              <label for="repairDesc">问题描述</label>
+              <textarea id="repairDesc" placeholder="如：卫生间水龙头漏水，地面湿滑。" required></textarea>
+            </div>
+            <div class="field">
+              <label for="repairPhoto">故障照片</label>
+              <input id="repairPhoto" type="file" accept="image/*" capture="environment">
+              <div class="photo-preview" id="repairPhotoName"></div>
+            </div>
+            <div class="actions">
+              <button class="secondary-btn" type="reset">清空</button>
+              <button class="primary-btn" type="submit"><svg class="icon"><use href="#i-plus"></use></svg>提交报修</button>
+            </div>
+          </form>
+        </section>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>维修单</h2>
+            <button class="link-button" type="button" id="finishFirstRepair">完成首单</button>
+          </div>
+          <div class="record-list" id="repairList"></div>
+        </section>
+      </section>
+
+      <section class="view" data-view="materials">
+        <div class="screen-title">
+          <div>
+            <h2>物资管理</h2>
+            <p>库存 · 认领 · 采购 · 入住预警 · 成本耗损</p>
+          </div>
+        </div>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>库存预警</h2>
+            <button class="link-button" type="button" id="exportData">导出日报</button>
+          </div>
+          <div class="material-kpis">
+            <div class="mini-stat"><span>预计入住</span><strong id="materialResidentText">0人</strong></div>
+            <div class="mini-stat"><span>缺口物资</span><strong id="materialShortageText">0项</strong></div>
+            <div class="mini-stat"><span>预计采购</span><strong id="materialPurchaseText">¥0</strong></div>
+            <div class="mini-stat"><span>耗损成本</span><strong id="materialLossText">¥0</strong></div>
+          </div>
+          <form class="form-grid forecast-form" id="residentForecastForm">
+            <div class="two-col">
+              <div class="field">
+                <label for="expectedResidents">后续入住人数</label>
+                <input id="expectedResidents" type="number" min="0" value="48">
+              </div>
+              <div class="field">
+                <label for="forecastRemark">预测备注</label>
+                <input id="forecastRemark" placeholder="如 下周二批量入职">
+              </div>
+            </div>
+            <button class="secondary-btn" type="submit">更新预警</button>
+          </form>
+        </section>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>具体库存</h2>
+            <span class="tag gray">按入住人数动态计算</span>
+          </div>
+          <div class="stock-list" id="stockList"></div>
+        </section>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>采购建议</h2>
+            <span class="tag amber">缺口优先</span>
+          </div>
+          <div class="record-list" id="materialNeedList"></div>
+        </section>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>物资登记</h2>
+          </div>
+          <form class="form-grid" id="materialForm">
+            <div class="two-col">
+              <div class="field">
+                <label for="materialName">物资</label>
+                <select id="materialName"></select>
+              </div>
+              <div class="field">
+                <label for="materialQty">数量</label>
+                <input id="materialQty" type="number" min="1" value="1" required>
+              </div>
+            </div>
+            <div>
+              <div class="choice-title">类型</div>
+              <div class="segmented">
+                <label><input type="radio" name="materialMove" value="入库" checked><span>入库</span></label>
+                <label><input type="radio" name="materialMove" value="认领"><span>认领</span></label>
+                <label><input type="radio" name="materialMove" value="采购"><span>采购</span></label>
+                <label><input type="radio" name="materialMove" value="耗损"><span>耗损</span></label>
+                <label><input type="radio" name="materialMove" value="盘点"><span>盘点</span></label>
+              </div>
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label for="materialPrice">采购单价</label>
+                <input id="materialPrice" type="number" min="0" step="0.01" placeholder="元">
+              </div>
+              <div class="field">
+                <label for="materialHandler">认领/采购人</label>
+                <input id="materialHandler" placeholder="如 小白 / A栋308">
+              </div>
+            </div>
+            <div class="field">
+              <label for="materialRemark">备注</label>
+              <input id="materialRemark" placeholder="如 新员工入住包补齐 / 损坏报废">
+            </div>
+            <div class="actions">
+              <button class="secondary-btn" type="reset">清空</button>
+              <button class="primary-btn" type="submit">保存登记</button>
+            </div>
+          </form>
+        </section>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>认领采购记录</h2>
+          </div>
+          <div class="record-list" id="materialLog"></div>
+        </section>
+      </section>
+
+      <section class="view" data-view="data">
+        <div class="screen-title">
+          <div>
+            <h2>数据分析</h2>
+            <p>巡检覆盖 · 维修进度 · 库存安全</p>
+          </div>
+        </div>
+        <section class="panel">
+          <div class="chart-grid">
+            <div class="metric-card">
+              <div class="metric-title"><strong>房间巡检覆盖</strong><span class="tag blue" id="coverValue">0%</span></div>
+              <div class="bar"><span id="coverBar"></span></div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title"><strong>维修响应进度</strong><span class="tag green" id="repairValue">0%</span></div>
+              <div class="bar"><span id="repairBar"></span></div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title"><strong>库存安全水平</strong><span class="tag amber" id="stockValue">0%</span></div>
+              <div class="bar"><span id="stockBar"></span></div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title"><strong>群发触达</strong><span class="tag violet" id="sendValue">0次</span></div>
+              <div class="bar"><span id="sendBar"></span></div>
+            </div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>风险提醒</h2>
+          </div>
+          <div class="record-list" id="riskList"></div>
+        </section>
+      </section>
+
+      <section class="view" data-view="modules">
+        <div class="screen-title">
+          <div>
+            <h2>更多业务</h2>
+            <p>制造中心集体宿舍扩展功能</p>
+          </div>
+        </div>
+        <section class="panel">
+          <div class="quick-grid" id="moduleGrid"></div>
+        </section>
+      </section>
+
+      <section class="view" data-view="moduleDetail">
+        <div class="screen-title">
+          <div>
+            <h2 id="moduleTitle">业务登记</h2>
+            <p id="moduleSubtitle">制造中心宿舍业务</p>
+          </div>
+          <button class="secondary-btn" type="button" data-open="modules">返回</button>
+        </div>
+        <section class="panel">
+          <div class="module-head">
+            <span class="quick-icon g-cyan" id="moduleIcon"><svg class="icon"><use href="#i-book"></use></svg></span>
+            <div>
+              <h2 id="moduleCardTitle">业务记录</h2>
+              <p class="muted" id="moduleCardText">暂无记录</p>
+            </div>
+          </div>
+        </section>
+        <section class="panel">
+          <form class="form-grid" id="moduleForm">
+            <div class="field">
+              <label for="moduleItem">对象</label>
+              <input id="moduleItem" placeholder="如 A栋308 / 张三 / 钥匙编号 K-08" required>
+            </div>
+            <div class="field">
+              <label for="moduleNote">登记内容</label>
+              <textarea id="moduleNote" placeholder="填写办理事项、原因或备注" required></textarea>
+            </div>
+            <button class="primary-btn" type="submit"><svg class="icon"><use href="#i-plus"></use></svg>保存记录</button>
+          </form>
+        </section>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>最近记录</h2>
+          </div>
+          <div class="record-list" id="moduleRecords"></div>
+        </section>
+      </section>
+
+      <section class="view" data-view="assistant">
+        <div class="screen-title">
+          <div>
+            <h2>AI宿舍助手</h2>
+            <p>巡检建议 · 通知文案 · 日报摘要</p>
+          </div>
+        </div>
+        <section class="panel">
+          <div class="chat-log" id="chatLog"></div>
+          <form class="chat-input" id="chatForm">
+            <div class="field">
+              <input id="chatInput" placeholder="例如：帮我写消防检查通知" autocomplete="off" required>
+            </div>
+            <button class="primary-btn" type="submit">发送</button>
+          </form>
+        </section>
+      </section>
+
+      <section class="view" data-view="me">
+        <div class="screen-title">
+          <div>
+            <h2>我的</h2>
+            <p>账号 · 值班 · 登录设置</p>
+          </div>
+        </div>
+        <section class="panel">
+          <div class="profile">
+            <div class="avatar" id="avatarText">白</div>
+            <div>
+              <h2 data-profile-name>小白</h2>
+              <p class="muted">制造中心宿舍管理员 · 白班</p>
+            </div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>宿管姓名</h2>
+          </div>
+          <form class="form-grid" id="profileForm">
+            <div class="field">
+              <label for="profileName">姓名</label>
+              <input id="profileName" value="小白" required>
+            </div>
+            <button class="primary-btn" type="submit">保存姓名</button>
+          </form>
+        </section>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>常用设置</h2>
+          </div>
+          <div class="settings">
+            <div class="setting-row">
+              <span class="stock-icon g-blue"><svg class="icon"><use href="#i-bell"></use></svg></span>
+              <strong>重要通知提醒</strong>
+              <span class="switch on"><span></span></span>
+            </div>
+            <div class="setting-row">
+              <span class="stock-icon g-green"><svg class="icon"><use href="#i-clock"></use></svg></span>
+              <strong>每日巡检任务</strong>
+              <span class="switch on"><span></span></span>
+            </div>
+            <div class="setting-row">
+              <span class="stock-icon g-amber"><svg class="icon"><use href="#i-box"></use></svg></span>
+              <strong>低库存预警</strong>
+              <span class="switch on"><span></span></span>
+            </div>
+          </div>
+        </section>
+        <section class="panel">
+          <button class="primary-btn danger-btn" type="button" id="logoutBtn">退出登录</button>
+        </section>
+      </section>
+    </div>
+
+    <nav class="tabbar" aria-label="底部导航">
+      <button class="tab active" type="button" data-open="home"><svg class="icon"><use href="#i-home"></use></svg><span>工作台</span></button>
+      <button class="tab" type="button" data-open="inspect"><svg class="icon"><use href="#i-clipboard"></use></svg><span>巡检</span></button>
+      <button class="tab" type="button" data-open="todos"><svg class="icon"><use href="#i-clock"></use></svg><span>待办</span></button>
+      <button class="tab" type="button" data-open="broadcast"><svg class="icon"><use href="#i-send"></use></svg><span>群发</span></button>
+      <button class="tab" type="button" data-open="me"><svg class="icon"><use href="#i-user"></use></svg><span>我的</span></button>
+    </nav>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const STORAGE_KEY = "factory-dorm-platform-v2";
+    const AUTH_KEY = "factory-dorm-auth-v2";
+    const $ = (selector, scope = document) => scope.querySelector(selector);
+    const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
+    const todayISO = () => new Date().toISOString().slice(0, 10);
+    const formatTime = () => new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
+
+    const featureList = [
+      { key: "inspect", label: "开始巡检", icon: "i-clipboard", color: "g-blue", view: "inspect" },
+      { key: "repair", label: "报修处理", icon: "i-wrench", color: "g-green", view: "repair" },
+      { key: "todos", label: "待办计划", icon: "i-clock", color: "g-amber", view: "todos" },
+      { key: "broadcast", label: "群发通知", icon: "i-send", color: "g-coral", view: "broadcast" },
+      { key: "checkin", label: "入住登记", icon: "i-bed", color: "g-cyan", module: true, subtitle: "新员工入住、床位分配、押金资料" },
+      { key: "checkout", label: "退宿办理", icon: "i-log-in", color: "g-slate", module: true, subtitle: "离职退宿、钥匙回收、床位释放" },
+      { key: "meter", label: "水电抄表", icon: "i-chart", color: "g-blue", module: true, subtitle: "水表、电表、公共区域能耗" },
+      { key: "keys", label: "钥匙管理", icon: "i-key", color: "g-amber", module: true, subtitle: "备用钥匙、借还记录、异常遗失" },
+      { key: "materials", label: "物资管理", icon: "i-box", color: "g-cyan", view: "materials" },
+      { key: "data", label: "数据分析", icon: "i-chart", color: "g-violet", view: "data" }
+    ];
+
+    const defaults = {
+      profile: { name: "小白", account: "xiaobai", duty: "白班", scope: "A/B栋" },
+      inspections: [
+        { id: "XJ-0001", building: "A栋", room: "308", bed: "03床", result: "违规第一次警告", items: ["抽烟", "宿舍卫生"], note: "床位周边发现烟头，已现场警告并要求整改。", reviewOf: "", photo: "", time: "09:12", date: todayISO() },
+        { id: "XJ-0002", building: "C栋", room: "216", bed: "整间", result: "合格", items: ["消防通道", "门窗门禁"], note: "通道正常，门禁完好。", reviewOf: "", photo: "", time: "10:05", date: todayISO() }
+      ],
+      repairs: [
+        { id: "BX-0001", location: "B栋308", type: "水电", priority: "加急", desc: "卫生间水龙头漏水，地面湿滑。", photo: "", status: "待派工", time: "09:28", date: todayISO() },
+        { id: "BX-0002", location: "C栋502", type: "空调", priority: "普通", desc: "空调制冷较弱，需检查滤网。", photo: "", status: "处理中", time: "11:14", date: todayISO() }
+      ],
+      todos: [
+        { id: "TD-0001", title: "A栋308用电整改复查", type: "复查", due: "10:30", source: "巡检异常", done: false, date: todayISO() },
+        { id: "TD-0002", title: "B栋308漏水维修跟进", type: "维修", due: "14:00", source: "报修工单", done: false, date: todayISO() },
+        { id: "TD-0003", title: "C栋2F消防通道点检", type: "安全", due: "16:00", source: "每日计划", done: false, date: todayISO() }
+      ],
+      schedule: { enabled: true, time: "08:30", buildings: ["A栋", "B栋"], floors: ["2F", "3F"], lastGenerated: "" },
+      recipients: [
+        { id: "G-A", name: "A栋住宿群", type: "群", checked: true },
+        { id: "G-B", name: "B栋住宿群", type: "群", checked: true },
+        { id: "G-C", name: "C栋住宿群", type: "群", checked: false },
+        { id: "G-D", name: "D栋住宿群", type: "群", checked: false },
+        { id: "P-WX", name: "维修负责人", type: "个人", checked: false },
+        { id: "P-AQ", name: "安全员", type: "个人", checked: true }
+      ],
+      broadcasts: [
+        { id: "QF-0001", title: "本周消防安全检查", content: "请各宿舍保持消防通道畅通，严禁私拉排插。", level: "重要", recipients: ["A栋住宿群", "B栋住宿群", "安全员"], timeMode: "立即发送", date: todayISO(), time: "08:40", status: "已发送" }
+      ],
+      notices: [
+        { title: "本周消防安全检查", date: "06-28", type: "安全" },
+        { title: "关于宿舍卫生抽查的通知", date: "06-27", type: "卫生" }
+      ],
+      expectedResidents: 48,
+      forecastRemark: "下周制造中心新员工批量入住",
+      materials: [
+        { name: "床上三件套", category: "入住包", unit: "套", stock: 36, safe: 20, perResident: 1, claimed: 8, purchasing: 10, loss: 2, price: 86, color: "g-blue" },
+        { name: "枕芯", category: "入住包", unit: "个", stock: 32, safe: 20, perResident: 1, claimed: 8, purchasing: 12, loss: 1, price: 28, color: "g-cyan" },
+        { name: "拖鞋", category: "入住包", unit: "双", stock: 40, safe: 30, perResident: 1, claimed: 6, purchasing: 0, loss: 3, price: 12, color: "g-green" },
+        { name: "备用钥匙", category: "门禁钥匙", unit: "把", stock: 42, safe: 25, perResident: 0.25, claimed: 12, purchasing: 0, loss: 1, price: 6, color: "g-blue" },
+        { name: "LED灯管", category: "维修备件", unit: "支", stock: 18, safe: 20, perResident: 0.18, claimed: 5, purchasing: 20, loss: 4, price: 18, color: "g-amber" },
+        { name: "清洁剂", category: "清洁用品", unit: "瓶", stock: 36, safe: 18, perResident: 0.4, claimed: 16, purchasing: 0, loss: 2, price: 15, color: "g-green" },
+        { name: "床板配件", category: "维修备件", unit: "套", stock: 12, safe: 10, perResident: 0.12, claimed: 3, purchasing: 0, loss: 1, price: 45, color: "g-slate" },
+        { name: "灭火器封签", category: "安全消防", unit: "个", stock: 9, safe: 15, perResident: 0.2, claimed: 4, purchasing: 30, loss: 0, price: 2, color: "g-coral" }
+      ],
+      materialLogs: [
+        { id: "WZ-0001", name: "清洁剂", move: "认领", qty: 4, unitPrice: 15, cost: 60, handler: "A栋保洁", remark: "A栋公共区域补给", time: "08:45", date: todayISO() },
+        { id: "WZ-0002", name: "LED灯管", move: "采购", qty: 20, unitPrice: 18, cost: 360, handler: "维修负责人", remark: "维修备件补充", time: "10:30", date: todayISO() },
+        { id: "WZ-0003", name: "床上三件套", move: "入库", qty: 10, unitPrice: 86, cost: 860, handler: "小白", remark: "新员工入住包备货", time: "15:10", date: todayISO() }
+      ],
+      moduleRecords: {
+        checkin: [{ id: "YW-0001", item: "A栋412", note: "新员工李明入住，床位 A412-03。", time: "09:20", date: todayISO() }]
+      },
+      chat: [
+        { role: "ai", text: "您好，小白。我可以帮您写群发通知、生成巡检计划、整理报修处理建议和日报摘要。" }
+      ]
+    };
+
+    let state = loadState();
+    let currentModule = "checkin";
+    let hideQualified = false;
+    let activeView = "home";
+    let viewHistory = [];
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (saved && saved.profile && saved.todos) {
+          return mergeDefaults(defaults, saved);
+        }
+      } catch (error) {
+        console.warn(error);
+      }
+      return JSON.parse(JSON.stringify(defaults));
+    }
+
+    function mergeDefaults(base, saved) {
+      const merged = JSON.parse(JSON.stringify(base));
+      Object.assign(merged, saved);
+      merged.profile = { ...base.profile, ...(saved.profile || {}) };
+      merged.schedule = { ...base.schedule, ...(saved.schedule || {}) };
+      merged.moduleRecords = { ...base.moduleRecords, ...(saved.moduleRecords || {}) };
+      merged.inspections = (saved.inspections || base.inspections).map(item => normalizeInspection(item));
+      merged.expectedResidents = Number(saved.expectedResidents ?? base.expectedResidents);
+      merged.forecastRemark = saved.forecastRemark ?? base.forecastRemark;
+      merged.materials = (saved.materials || base.materials).map((item, index) => {
+        const fallback = base.materials.find(material => material.name === item.name) || base.materials[index] || {};
+        return normalizeMaterial(item, fallback);
+      });
+      merged.materialLogs = (saved.materialLogs || base.materialLogs).map(log => normalizeMaterialLog(log));
+      return merged;
+    }
+
+    function normalizeInspection(item) {
+      let result = item.result || "合格";
+      const legacyResultMap = { "待整改": "违规第一次警告", "需复查": "再犯" };
+      result = legacyResultMap[result] || result;
+      return {
+        ...item,
+        building: item.building || "",
+        room: item.room || "",
+        bed: item.bed || "整间",
+        result,
+        items: Array.isArray(item.items) ? item.items : [],
+        reviewOf: item.reviewOf || "",
+        note: item.note || ""
+      };
+    }
+
+    function normalizeMaterial(item, fallback = {}) {
+      return {
+        ...fallback,
+        ...item,
+        category: item.category || fallback.category || "日常物资",
+        unit: item.unit || fallback.unit || "件",
+        stock: Number(item.stock ?? fallback.stock ?? 0),
+        safe: Number(item.safe ?? fallback.safe ?? 0),
+        perResident: Number(item.perResident ?? fallback.perResident ?? 0),
+        claimed: Number(item.claimed ?? fallback.claimed ?? 0),
+        purchasing: Number(item.purchasing ?? fallback.purchasing ?? 0),
+        loss: Number(item.loss ?? fallback.loss ?? 0),
+        price: Number(item.price ?? fallback.price ?? 0),
+        color: item.color || fallback.color || "g-blue"
+      };
+    }
+
+    function normalizeMaterialLog(log) {
+      const move = log.move === "领用" ? "认领" : log.move;
+      const unitPrice = Number(log.unitPrice ?? log.price ?? 0);
+      return {
+        ...log,
+        move,
+        unitPrice,
+        cost: Number(log.cost ?? (Number(log.qty || 0) * unitPrice)),
+        handler: log.handler || ""
+      };
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function icon(name) {
+      return `<svg class="icon"><use href="#${name}"></use></svg>`;
+    }
+
+    function nextId(prefix, list) {
+      return `${prefix}-${String((list?.length || 0) + 1).padStart(4, "0")}`;
+    }
+
+    function tagClass(type) {
+      const map = { "巡检": "blue", "复查": "amber", "维修": "green", "安全": "coral", "入住": "violet", "物资": "cyan", "群": "blue", "个人": "green", "重要": "amber", "紧急": "coral", "普通": "gray", "入库": "green", "认领": "blue", "采购": "amber", "耗损": "coral", "盘点": "violet" };
+      return map[type] || "gray";
+    }
+
+    function money(value) {
+      return `¥${Math.round(Number(value || 0)).toLocaleString("zh-CN")}`;
+    }
+
+    function materialNeed(item) {
+      const planned = Math.ceil(Number(state.expectedResidents || 0) * Number(item.perResident || 0));
+      const target = Math.max(Number(item.safe || 0), planned);
+      const available = Number(item.stock || 0) + Number(item.purchasing || 0);
+      const shortage = Math.max(0, target - available);
+      return {
+        planned,
+        target,
+        available,
+        shortage,
+        purchaseCost: shortage * Number(item.price || 0),
+        stockValue: Number(item.stock || 0) * Number(item.price || 0),
+        claimedCost: Number(item.claimed || 0) * Number(item.price || 0),
+        lossCost: Number(item.loss || 0) * Number(item.price || 0)
+      };
+    }
+
+    function materialSummary() {
+      const needs = state.materials.map(item => ({ item, ...materialNeed(item) }));
+      return {
+        needs,
+        shortageItems: needs.filter(row => row.shortage > 0),
+        purchaseCost: needs.reduce((sum, row) => sum + row.purchaseCost, 0),
+        lossCost: needs.reduce((sum, row) => sum + row.lossCost, 0),
+        stockValue: needs.reduce((sum, row) => sum + row.stockValue, 0)
+      };
+    }
+
+    function showToast(message) {
+      const toast = $("#toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    function setDateText() {
+      const date = new Date();
+      const weekday = "日一二三四五六"[date.getDay()];
+      const planned = `${state.schedule.buildings.join("/")} · ${state.schedule.floors.join("/")}`;
+      $("#todayText").textContent = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")} 星期${weekday} · ${planned}`;
+      $("#dutyPill").textContent = `${state.profile.duty} · ${state.profile.scope} · 员工宿舍`;
+    }
+
+    function login(account, password, remember) {
+      if (!account.trim() || !password.trim()) {
+        showToast("请输入账号和密码");
+        return;
+      }
+      state.profile.account = account.trim();
+      if (!state.profile.name) state.profile.name = "小白";
+      saveState();
+      const auth = remember ? { remember: true, account: account.trim(), password } : { remember: false, account: "", password: "" };
+      sessionStorage.setItem(AUTH_KEY, JSON.stringify({ account: account.trim() }));
+      localStorage.setItem(AUTH_KEY, JSON.stringify(auth));
+      document.body.classList.remove("locked");
+      ensureDailySchedule();
+      renderAll();
+    }
+
+    function restoreLogin() {
+      let auth = {};
+      try { auth = JSON.parse(localStorage.getItem(AUTH_KEY)) || {}; } catch (error) { auth = {}; }
+      if (auth.remember) {
+        $("#loginAccount").value = auth.account || "xiaobai";
+        $("#loginPassword").value = auth.password || "123456";
+        $("#rememberLogin").checked = true;
+        login($("#loginAccount").value, $("#loginPassword").value, true);
+      } else {
+        $("#loginAccount").value = auth.account || "xiaobai";
+      }
+    }
+
+    function showView(name, options = {}) {
+      const target = name;
+      if (target === activeView && !options.force) return;
+      if (!options.skipHistory && activeView && activeView !== target) {
+        viewHistory.push(activeView);
+        if (viewHistory.length > 8) viewHistory.shift();
+      }
+      $$(".view").forEach(view => view.classList.toggle("active", view.dataset.view === target));
+      $$(".tab").forEach(tab => tab.classList.toggle("active", tab.dataset.open === target));
+      activeView = target;
+      document.body.classList.toggle("has-back", target !== "home");
+      if (target === "data") renderData();
+      if (target === "todos") loadScheduleForm();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function goBack() {
+      const previous = viewHistory.pop() || "home";
+      showView(previous, { skipHistory: true, force: true });
+    }
+
+    function openFeature(feature) {
+      if (feature.module) {
+        currentModule = feature.key;
+        renderModuleDetail(feature);
+        showView("moduleDetail");
+        return;
+      }
+      showView(feature.view);
+    }
+
+    function renderQuickAreas() {
+      const makeButton = feature => `
+        <button class="quick" type="button" data-feature="${feature.key}">
+          <span class="quick-icon ${feature.color}">${icon(feature.icon)}</span>
+          ${feature.label}
+        </button>
+      `;
+      $("#quickGrid").innerHTML = featureList.slice(0, 12).map(makeButton).join("");
+      $("#moduleGrid").innerHTML = featureList.map(makeButton).join("");
+    }
+
+    function renderProfile() {
+      $$("[data-profile-name]").forEach(node => node.textContent = state.profile.name);
+      $(".hero h2").textContent = `Hi，${state.profile.name}`;
+      $("#profileName").value = state.profile.name;
+      $("#avatarText").textContent = state.profile.name.slice(-1) || "白";
+    }
+
+    function renderStats() {
+      const today = todayISO();
+      const todayInspections = state.inspections.filter(item => item.date === today);
+      const issues = state.inspections.filter(item => item.result !== "合格").length + state.todos.filter(item => !item.done && item.type !== "维修").length;
+      const pendingRepairs = state.repairs.filter(item => item.status !== "已完成").length;
+      const done = state.todos.filter(item => item.done).length + state.inspections.filter(item => item.result === "合格").length + state.repairs.filter(item => item.status === "已完成").length;
+      $("#statRooms").textContent = todayInspections.length || state.inspections.length;
+      $("#statIssue").textContent = issues;
+      $("#statRepair").textContent = pendingRepairs;
+      $("#statDone").textContent = done;
+      $("#noticeCount").textContent = state.broadcasts.length;
+    }
+
+    function taskMarkup(todo, compact = false) {
+      return `
+        <label class="task ${todo.done ? "done" : ""}">
+          <input type="checkbox" data-todo="${todo.id}" ${todo.done ? "checked" : ""}>
+          <span class="task-title">
+            <strong>${todo.title}</strong>
+            <small>${todo.due || "今日"} · ${todo.source || "自定义"}</small>
+          </span>
+          <em class="tag ${tagClass(todo.type)}">${todo.type}</em>
+          ${compact ? "" : `<button class="icon-button danger" type="button" data-delete-todo="${todo.id}" aria-label="删除待办">${icon("i-trash")}</button>`}
+        </label>
+      `;
+    }
+
+    function renderTodos() {
+      const todayTodos = state.todos.filter(item => item.date === todayISO());
+      $("#homeTodoList").innerHTML = todayTodos.slice(0, 5).map(item => taskMarkup(item, true)).join("") || `<div class="empty">今日待办已清空</div>`;
+      $("#todoList").innerHTML = state.todos.map(item => taskMarkup(item)).join("") || `<div class="empty">暂无待办</div>`;
+    }
+
+    function noticeMarkup(notice) {
+      return `
+        <div class="notice">
+          <span class="notice-icon">${icon("i-megaphone")}</span>
+          <strong>${notice.title}</strong>
+          <time>${notice.date}</time>
+        </div>
+      `;
+    }
+
+    function renderNotices() {
+      $("#noticeList").innerHTML = state.notices.slice(0, 3).map(noticeMarkup).join("") || `<div class="empty">暂无群发通知</div>`;
+    }
+
+    function renderRecipients() {
+      $("#recipientGrid").innerHTML = state.recipients.map(item => `
+        <label class="recipient">
+          <input type="checkbox" value="${item.id}" ${item.checked ? "checked" : ""}>
+          <span>${item.name}</span>
+          <em class="tag ${tagClass(item.type)}">${item.type}</em>
+        </label>
+      `).join("");
+    }
+
+    function renderBroadcasts() {
+      $("#broadcastLog").innerHTML = state.broadcasts.length ? [...state.broadcasts].reverse().map(item => `
+        <article class="record">
+          <div class="record-top">
+            <div>
+              <strong>${item.title}</strong>
+              <small>${item.date} ${item.time} · ${item.id}</small>
+            </div>
+            <span class="tag ${tagClass(item.level)}">${item.level}</span>
+          </div>
+          <p>${item.content}</p>
+          <div class="mini-row">
+            <span class="tag green">${item.status}</span>
+            <span class="tag gray">${item.recipients.join("、")}</span>
+          </div>
+        </article>
+      `).join("") : `<div class="empty">暂无群发记录</div>`;
+    }
+
+    function renderInspections() {
+      let records = [...state.inspections].reverse();
+      if (hideQualified) records = records.filter(item => item.result !== "合格");
+      $("#inspectionList").innerHTML = records.length ? records.map(item => `
+        <article class="record">
+          <div class="record-top">
+            <div>
+              <strong>${inspectionLocation(item)} · ${item.items.join("、") || "常规巡检"}</strong>
+              <small>${item.date} ${item.time} · ${item.id}${item.reviewOf ? ` · 复查 ${item.reviewOf}` : ""}</small>
+            </div>
+            <span class="tag ${inspectionResultClass(item.result)}">${item.result}</span>
+          </div>
+          <p>${item.note || "无异常记录。"}${item.photo ? ` 已上传：${item.photo}` : ""}</p>
+          <div class="mini-row">
+            ${item.result !== "合格" ? `<button class="secondary-btn" type="button" data-review-inspection="${item.id}">复查</button>` : ""}
+            <span class="tag gray">${item.reviewOf ? "复查记录" : "首次记录"}</span>
+          </div>
+        </article>
+      `).join("") : `<div class="empty">暂无巡检记录</div>`;
+      renderInspectionReviewOptions();
+    }
+
+    function renderInspectionAnalysis() {
+      const total = state.inspections.length;
+      const violations = state.inspections.filter(item => item.result !== "合格");
+      const reviews = state.inspections.filter(item => item.reviewOf);
+      const serious = state.inspections.filter(item => item.result.includes("严重警告") || item.result.includes("再犯"));
+      $("#inspectTotalText").textContent = `${total}条`;
+      $("#inspectViolationText").textContent = `${violations.length}条`;
+      $("#inspectReviewText").textContent = `${reviews.length}条`;
+      $("#inspectSeriousText").textContent = `${serious.length}条`;
+    }
+
+    function inspectionLocation(item) {
+      return `${item.building || ""}${item.room || ""}${item.bed ? `-${item.bed}` : ""}`;
+    }
+
+    function inspectionResultClass(result) {
+      if (result === "合格") return "green";
+      if (result.includes("取消住宿资格") || result.includes("再犯")) return "coral";
+      if (result.includes("用电")) return "blue";
+      if (result.includes("其他")) return "violet";
+      return "amber";
+    }
+
+    function renderInspectionReviewOptions() {
+      updateReviewMatch();
+    }
+
+    function findReviewMatch() {
+      const building = $("#inspectBuilding")?.value || "";
+      const room = ($("#inspectRoom")?.value || "").trim();
+      const bed = ($("#inspectBed")?.value || "").trim();
+      if (!room) return null;
+      return state.inspections
+        .slice()
+        .reverse()
+        .find(item => item.result !== "合格" && item.building === building && item.room === room && (!bed || item.bed === bed || item.bed === "整间"));
+    }
+
+    function updateReviewMatch() {
+      const card = $("#reviewMatchCard");
+      if (!card) return;
+      const match = findReviewMatch();
+      if (!match) {
+        card.style.display = "none";
+        if (!$("#inspectReviewSource").dataset.manual) $("#inspectReviewSource").value = "";
+        return;
+      }
+      if (!$("#inspectReviewSource").dataset.manual) $("#inspectReviewSource").value = match.id;
+      $("#reviewMatchTitle").textContent = `${inspectionLocation(match)} 有历史违规`;
+      $("#reviewMatchMeta").textContent = `${match.id} · ${match.date} ${match.time} · ${match.result}`;
+      $("#reviewMatchText").textContent = match.note || match.items.join("、");
+      card.style.display = "grid";
+    }
+
+    function renderRepairs() {
+      $("#repairList").innerHTML = state.repairs.length ? [...state.repairs].reverse().map(item => `
+        <article class="record">
+          <div class="record-top">
+            <div>
+              <strong>${item.location} · ${item.type}</strong>
+              <small>${item.date} ${item.time} · ${item.id}</small>
+            </div>
+            <span class="tag ${item.status === "已完成" ? "green" : item.priority === "安全隐患" ? "coral" : "amber"}">${item.status}</span>
+          </div>
+          <p>${item.desc}${item.photo ? ` 已上传：${item.photo}` : ""}</p>
+          <div class="mini-row">
+            <span class="tag ${item.priority === "安全隐患" ? "coral" : item.priority === "加急" ? "amber" : "blue"}">${item.priority}</span>
+            <span class="tag gray">${item.type}</span>
+          </div>
+        </article>
+      `).join("") : `<div class="empty">暂无维修单</div>`;
+    }
+
+    function renderMaterials() {
+      const summary = materialSummary();
+      $("#expectedResidents").value = state.expectedResidents;
+      $("#forecastRemark").value = state.forecastRemark || "";
+      $("#materialResidentText").textContent = `${state.expectedResidents}人`;
+      $("#materialShortageText").textContent = `${summary.shortageItems.length}项`;
+      $("#materialPurchaseText").textContent = money(summary.purchaseCost);
+      $("#materialLossText").textContent = money(summary.lossCost);
+      $("#materialName").innerHTML = state.materials.map(item => `<option>${item.name}</option>`).join("");
+      const selectedMaterial = state.materials.find(item => item.name === $("#materialName").value) || state.materials[0];
+      $("#materialPrice").value = selectedMaterial?.price || "";
+      $("#stockList").innerHTML = state.materials.map(item => {
+        const need = materialNeed(item);
+        const percent = Math.min(100, Math.round(need.available / Math.max(need.target, 1) * 100));
+        const low = need.shortage > 0;
+        return `
+          <article class="stock ${low ? "low" : ""}">
+            <span class="stock-icon ${item.color}">${icon("i-box")}</span>
+            <div class="stock-detail">
+              <strong>${item.name}</strong>
+              <small class="muted">${item.category} · 单价 ${money(item.price)}/${item.unit} · 应备 ${need.target}${item.unit}</small>
+              <div class="stock-meta">
+                <span>库存 ${item.stock}${item.unit}</span>
+                <span>已认领 ${item.claimed}${item.unit}</span>
+                <span>采购中 ${item.purchasing}${item.unit}</span>
+                <span>耗损 ${item.loss}${item.unit}</span>
+              </div>
+              <div class="stock-cost">
+                <span>库存值 ${money(need.stockValue)}</span>
+                <span>认领值 ${money(need.claimedCost)}</span>
+                <span>耗损值 ${money(need.lossCost)}</span>
+              </div>
+            </div>
+            <div class="stock-warning">
+              <strong>${low ? `缺${need.shortage}${item.unit}` : "充足"}</strong>
+              <span class="tag ${low ? "coral" : "green"}">${low ? money(need.purchaseCost) : "无需采购"}</span>
+              <div class="stock-meter" style="--stock: ${percent}%"><span></span></div>
+            </div>
+          </article>
+        `;
+      }).join("");
+      $("#materialNeedList").innerHTML = summary.shortageItems.length ? summary.shortageItems.map(row => `
+        <article class="record">
+          <div class="record-top">
+            <div>
+              <strong>${row.item.name} 需采购 ${row.shortage}${row.item.unit}</strong>
+              <small>${row.item.category} · 预计入住 ${state.expectedResidents}人 · ${state.forecastRemark || "未填写备注"}</small>
+            </div>
+            <span class="tag coral">${money(row.purchaseCost)}</span>
+          </div>
+          <p>现有库存 ${row.item.stock}${row.item.unit}，采购中 ${row.item.purchasing}${row.item.unit}，应备 ${row.target}${row.item.unit}。建议优先补齐。</p>
+        </article>
+      `).join("") : `<div class="empty">当前库存可覆盖预计入住人数</div>`;
+      $("#materialLog").innerHTML = state.materialLogs.length ? [...state.materialLogs].reverse().slice(0, 8).map(item => `
+        <article class="record">
+          <div class="record-top">
+            <div>
+              <strong>${item.name} · ${item.move} ${item.qty}</strong>
+              <small>${item.date} ${item.time} · ${item.id}${item.handler ? ` · ${item.handler}` : ""}</small>
+            </div>
+            <span class="tag ${tagClass(item.move)}">${item.move}</span>
+          </div>
+          <p>${item.remark || "未填写备注。"} 单价 ${money(item.unitPrice)}，金额 ${money(item.cost)}。</p>
+        </article>
+      `).join("") : `<div class="empty">暂无物资记录</div>`;
+    }
+
+    function renderData() {
+      const cover = Math.min(100, Math.round((state.inspections.length / 128) * 100));
+      const repairDone = state.repairs.length ? Math.round(state.repairs.filter(item => item.status === "已完成").length / state.repairs.length * 100) : 100;
+      const stockSafe = Math.round(state.materials.filter(item => materialNeed(item).shortage === 0).length / state.materials.length * 100);
+      const sendRate = Math.min(100, state.broadcasts.length * 18);
+      $("#coverValue").textContent = `${cover}%`;
+      $("#coverBar").style.setProperty("--value", `${cover}%`);
+      $("#repairValue").textContent = `${repairDone}%`;
+      $("#repairBar").style.setProperty("--value", `${repairDone}%`);
+      $("#stockValue").textContent = `${stockSafe}%`;
+      $("#stockBar").style.setProperty("--value", `${stockSafe}%`);
+      $("#sendValue").textContent = `${state.broadcasts.length}次`;
+      $("#sendBar").style.setProperty("--value", `${sendRate}%`);
+
+      const risks = [];
+      materialSummary().shortageItems.forEach(row => risks.push({ title: `${row.item.name}预计缺 ${row.shortage}${row.item.unit}`, detail: `预计入住 ${state.expectedResidents} 人，应备 ${row.target}${row.item.unit}，预计采购 ${money(row.purchaseCost)}。`, type: "物资" }));
+      state.repairs.filter(item => item.priority === "安全隐患" && item.status !== "已完成").forEach(item => risks.push({ title: `${item.location}存在安全隐患维修单`, detail: item.desc, type: "维修" }));
+      state.inspections.filter(item => item.result !== "合格").slice(0, 3).forEach(item => risks.push({ title: `${inspectionLocation(item)}需要复查`, detail: item.note || "巡检异常待处理。", type: "巡检" }));
+      $("#riskList").innerHTML = risks.length ? risks.map(item => `
+        <article class="record">
+          <div class="record-top">
+            <strong>${item.title}</strong>
+            <span class="tag ${tagClass(item.type)}">${item.type}</span>
+          </div>
+          <p>${item.detail}</p>
+        </article>
+      `).join("") : `<div class="empty">当前无高风险事项</div>`;
+    }
+
+    function renderModuleDetail(feature) {
+      $("#moduleTitle").textContent = feature.label;
+      $("#moduleSubtitle").textContent = feature.subtitle;
+      $("#moduleIcon").className = `quick-icon ${feature.color}`;
+      $("#moduleIcon").innerHTML = icon(feature.icon);
+      $("#moduleCardTitle").textContent = feature.label;
+      $("#moduleCardText").textContent = feature.subtitle;
+      const records = state.moduleRecords[feature.key] || [];
+      $("#moduleRecords").innerHTML = records.length ? [...records].reverse().map(item => `
+        <article class="record">
+          <div class="record-top">
+            <div>
+              <strong>${item.item}</strong>
+              <small>${item.date} ${item.time} · ${item.id}</small>
+            </div>
+            <span class="tag cyan">已登记</span>
+          </div>
+          <p>${item.note}</p>
+        </article>
+      `).join("") : `<div class="empty">暂无记录</div>`;
+    }
+
+    function renderChat() {
+      $("#chatLog").innerHTML = state.chat.map(message => `<div class="chat-message ${message.role === "user" ? "user" : "ai"}">${message.text}</div>`).join("");
+      $("#chatLog").scrollTop = $("#chatLog").scrollHeight;
+    }
+
+    function loadScheduleForm() {
+      $("#scheduleTime").value = state.schedule.time;
+      $("#scheduleEnabled").value = String(state.schedule.enabled);
+      $$("#scheduleBuildings input").forEach(input => input.checked = state.schedule.buildings.includes(input.value));
+      $$("#scheduleFloors input").forEach(input => input.checked = state.schedule.floors.includes(input.value));
+    }
+
+    function scheduleSummary() {
+      return `${state.schedule.time} · ${state.schedule.buildings.join("/")} · ${state.schedule.floors.join("/")}`;
+    }
+
+    function generateScheduleTasks(force = false) {
+      const today = todayISO();
+      if (!force && state.schedule.lastGenerated === today) return 0;
+      const tasks = [];
+      state.schedule.buildings.forEach(building => {
+        state.schedule.floors.forEach(floor => {
+          tasks.push({
+            id: nextId("TD", state.todos.concat(tasks)),
+            title: `${building}${floor}员工宿舍巡检`,
+            type: "巡检",
+            due: state.schedule.time,
+            source: "每日计划",
+            done: false,
+            date: today
+          });
+        });
+      });
+      state.todos.unshift(...tasks);
+      state.schedule.lastGenerated = today;
+      saveState();
+      return tasks.length;
+    }
+
+    function ensureDailySchedule() {
+      if (!state.schedule.enabled || state.schedule.lastGenerated === todayISO()) return;
+      const now = new Date();
+      const current = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      if (current >= state.schedule.time) generateScheduleTasks(false);
+    }
+
+    function aiReply(text) {
+      if (/通知|群发|文案/.test(text)) {
+        return "建议标题写清时间和事项，正文包含对象、地点、要求、联系人。紧急事项可同步发送到楼栋群和安全员。";
+      }
+      if (/巡检|楼层|计划/.test(text)) {
+        return `当前每日计划为 ${scheduleSummary()}。可在待办页调整楼栋、楼层和发布时间。`;
+      }
+      if (/漏水|水龙头|渗水/.test(text)) {
+        return "漏水类问题建议先拍照，确认是否影响用电安全；地面湿滑时先放警示牌，再提交加急维修并生成复查待办。";
+      }
+      if (/物资|库存|采购|耗损|认领|入住/.test(text)) {
+        const summary = materialSummary();
+        const names = summary.shortageItems.slice(0, 3).map(row => `${row.item.name}缺${row.shortage}${row.item.unit}`).join("、") || "暂无缺口";
+        return `按预计入住 ${state.expectedResidents} 人测算，当前缺口 ${summary.shortageItems.length} 项，预计采购 ${money(summary.purchaseCost)}。优先处理：${names}。`;
+      }
+      if (/日报|统计|汇总/.test(text)) {
+        const pending = state.todos.filter(item => !item.done).length + state.repairs.filter(item => item.status !== "已完成").length;
+        return `今日巡检 ${state.inspections.length} 条、报修 ${state.repairs.length} 单、群发 ${state.broadcasts.length} 次，待处理 ${pending} 项。`;
+      }
+      return "可以补充楼栋、楼层、房号、照片和处理期限。这样巡检、报修、群发和日报都会更完整。";
+    }
+
+    function renderAll() {
+      renderQuickAreas();
+      renderProfile();
+      setDateText();
+      renderStats();
+      renderTodos();
+      renderNotices();
+      renderRecipients();
+      renderBroadcasts();
+      renderInspections();
+      renderInspectionAnalysis();
+      renderRepairs();
+      renderMaterials();
+      renderData();
+      renderChat();
+      loadScheduleForm();
+    }
+
+    document.addEventListener("click", event => {
+      const opener = event.target.closest("[data-open]");
+      if (opener) showView(opener.dataset.open);
+
+      const featureButton = event.target.closest("[data-feature]");
+      if (featureButton) {
+        const feature = featureList.find(item => item.key === featureButton.dataset.feature);
+        if (feature) openFeature(feature);
+      }
+
+      const todoCheck = event.target.closest("[data-todo]");
+      if (todoCheck) {
+        const todo = state.todos.find(item => item.id === todoCheck.dataset.todo);
+        if (todo) {
+          todo.done = todoCheck.checked;
+          saveState();
+          renderAll();
+          showToast(todo.done ? "待办已完成" : "待办已恢复");
+        }
+      }
+
+      const deleteTodo = event.target.closest("[data-delete-todo]");
+      if (deleteTodo) {
+        state.todos = state.todos.filter(item => item.id !== deleteTodo.dataset.deleteTodo);
+        saveState();
+        renderAll();
+        showToast("待办已删除");
+      }
+
+      const reviewButton = event.target.closest("[data-review-inspection]");
+      if (reviewButton) {
+        const original = state.inspections.find(item => item.id === reviewButton.dataset.reviewInspection);
+        if (original) {
+          showView("inspect");
+          $("#inspectBuilding").value = original.building || "A栋";
+          $("#inspectRoom").value = original.room || "";
+          $("#inspectBed").value = original.bed || "整间";
+          $("#inspectReviewSource").value = original.id;
+          $("#inspectReviewSource").dataset.manual = "true";
+          $("#inspectNote").value = `复查 ${original.id}：${original.note || original.result}`;
+          updateReviewMatch();
+          showToast("已带入原违规记录，可继续填写复查结果");
+        }
+      }
+    });
+
+    $("#loginForm").addEventListener("submit", event => {
+      event.preventDefault();
+      login($("#loginAccount").value, $("#loginPassword").value, $("#rememberLogin").checked);
+    });
+
+    $("#backButton").addEventListener("click", goBack);
+
+    $("#logoutBtn").addEventListener("click", () => {
+      sessionStorage.removeItem(AUTH_KEY);
+      document.body.classList.add("locked");
+      document.body.classList.remove("has-back");
+      showToast("已退出登录");
+    });
+
+    $("#profileForm").addEventListener("submit", event => {
+      event.preventDefault();
+      state.profile.name = $("#profileName").value.trim() || "小白";
+      saveState();
+      renderAll();
+      showToast("姓名已更新");
+    });
+
+    $("#todoForm").addEventListener("submit", event => {
+      event.preventDefault();
+      state.todos.unshift({
+        id: nextId("TD", state.todos),
+        title: $("#todoTitle").value.trim(),
+        type: $("#todoType").value,
+        due: $("#todoDue").value,
+        source: "自定义",
+        done: false,
+        date: todayISO()
+      });
+      event.currentTarget.reset();
+      $("#todoDue").value = "09:00";
+      saveState();
+      renderAll();
+      showToast("待办已增加");
+    });
+
+    $("#scheduleForm").addEventListener("submit", event => {
+      event.preventDefault();
+      state.schedule.time = $("#scheduleTime").value;
+      state.schedule.enabled = $("#scheduleEnabled").value === "true";
+      state.schedule.buildings = $$("#scheduleBuildings input:checked").map(item => item.value);
+      state.schedule.floors = $$("#scheduleFloors input:checked").map(item => item.value);
+      if (!state.schedule.buildings.length) state.schedule.buildings = ["A栋"];
+      if (!state.schedule.floors.length) state.schedule.floors = ["1F"];
+      saveState();
+      renderAll();
+      showToast("巡检计划已保存");
+    });
+
+    $("#generateScheduleNow").addEventListener("click", () => {
+      state.schedule.lastGenerated = "";
+      const count = generateScheduleTasks(true);
+      renderAll();
+      showToast(`已生成 ${count} 条巡检任务`);
+    });
+
+    $("#clearDoneTodos").addEventListener("click", () => {
+      const before = state.todos.length;
+      state.todos = state.todos.filter(item => !item.done);
+      saveState();
+      renderAll();
+      showToast(`已清理 ${before - state.todos.length} 条`);
+    });
+
+    $("#inspectPhoto").addEventListener("change", event => {
+      const file = event.target.files[0];
+      $("#inspectPhotoName").style.display = file ? "block" : "none";
+      $("#inspectPhotoName").textContent = file ? `已选择照片：${file.name}` : "";
+    });
+
+    ["inspectBuilding", "inspectRoom", "inspectBed"].forEach(id => {
+      $(`#${id}`).addEventListener(id === "inspectBuilding" ? "change" : "input", () => {
+        delete $("#inspectReviewSource").dataset.manual;
+        updateReviewMatch();
+      });
+    });
+
+    $("#useReviewMatch").addEventListener("click", () => {
+      const match = findReviewMatch();
+      if (!match) return;
+      $("#inspectReviewSource").value = match.id;
+      $("#inspectReviewSource").dataset.manual = "true";
+      showToast(`已关联 ${match.id}`);
+    });
+
+    $("#clearReviewMatch").addEventListener("click", () => {
+      $("#inspectReviewSource").value = "";
+      $("#inspectReviewSource").dataset.manual = "true";
+      $("#reviewMatchCard").style.display = "none";
+      showToast("已按新增巡检处理");
+    });
+
+    $("#repairPhoto").addEventListener("change", event => {
+      const file = event.target.files[0];
+      $("#repairPhotoName").style.display = file ? "block" : "none";
+      $("#repairPhotoName").textContent = file ? `已选择照片：${file.name}` : "";
+    });
+
+    $("#inspectForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const resultBase = $("input[name='inspectResult']:checked").value;
+      const resultOther = $("#inspectResultOther").value.trim();
+      const result = resultBase === "其他" && resultOther ? `其他：${resultOther}` : resultBase;
+      const items = $$("#inspectItems input:checked").map(item => item.value);
+      const otherItem = $("#inspectOtherItem").value.trim();
+      if (items.includes("其他") && otherItem) {
+        items[items.indexOf("其他")] = `其他：${otherItem}`;
+      }
+      const record = {
+        id: nextId("XJ", state.inspections),
+        building: $("#inspectBuilding").value,
+        room: $("#inspectRoom").value.trim(),
+        bed: $("#inspectBed").value.trim(),
+        result,
+        items,
+        note: $("#inspectNote").value.trim(),
+        reviewOf: $("#inspectReviewSource").value,
+        photo: $("#inspectPhoto").files[0]?.name || "",
+        time: formatTime(),
+        date: todayISO()
+      };
+      state.inspections.push(record);
+      if (result !== "合格") {
+        state.todos.unshift({ id: nextId("TD", state.todos), title: `${inspectionLocation(record)} ${result}复查`, type: "复查", due: "明日", source: record.reviewOf ? "复查异常" : "巡检异常", done: false, date: todayISO() });
+      }
+      event.currentTarget.reset();
+      $("#inspectPhotoName").style.display = "none";
+      saveState();
+      renderAll();
+      showToast("巡检记录已保存");
+    });
+
+    $("#toggleInspectDone").addEventListener("click", () => {
+      hideQualified = !hideQualified;
+      $("#toggleInspectDone").textContent = hideQualified ? "显示全部" : "隐藏合格";
+      renderInspections();
+    });
+
+    $("#repairForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const priority = $("input[name='repairPriority']:checked").value;
+      const record = {
+        id: nextId("BX", state.repairs),
+        location: $("#repairLocation").value.trim(),
+        type: $("#repairType").value,
+        priority,
+        desc: $("#repairDesc").value.trim(),
+        photo: $("#repairPhoto").files[0]?.name || "",
+        status: priority === "安全隐患" ? "待派工" : "待处理",
+        time: formatTime(),
+        date: todayISO()
+      };
+      state.repairs.push(record);
+      state.todos.unshift({ id: nextId("TD", state.todos), title: `${record.location}${record.type}维修跟进`, type: "维修", due: priority === "普通" ? "今日" : "立即", source: "报修工单", done: false, date: todayISO() });
+      event.currentTarget.reset();
+      $("#repairPhotoName").style.display = "none";
+      saveState();
+      renderAll();
+      showToast("报修单已生成");
+    });
+
+    $("#finishFirstRepair").addEventListener("click", () => {
+      const first = state.repairs.find(item => item.status !== "已完成");
+      if (!first) {
+        showToast("没有待完成维修单");
+        return;
+      }
+      first.status = "已完成";
+      saveState();
+      renderAll();
+      showToast(`${first.id} 已完成`);
+    });
+
+    $("#broadcastForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const selected = $$("#recipientGrid input:checked").map(input => state.recipients.find(item => item.id === input.value)?.name).filter(Boolean);
+      if (!selected.length) {
+        showToast("请选择接收对象");
+        return;
+      }
+      const title = $("#broadcastTitle").value.trim();
+      const content = $("#broadcastContent").value.trim();
+      const record = {
+        id: nextId("QF", state.broadcasts),
+        title,
+        content,
+        level: $("#broadcastLevel").value,
+        recipients: selected,
+        timeMode: $("#broadcastTime").value,
+        date: todayISO(),
+        time: formatTime(),
+        status: "已发送"
+      };
+      state.broadcasts.push(record);
+      state.notices.unshift({ title, date: todayISO().slice(5), type: record.level });
+      saveState();
+      renderAll();
+      event.currentTarget.reset();
+      renderRecipients();
+      showToast(`已群发给 ${selected.length} 个对象`);
+    });
+
+    $("#draftBroadcast").addEventListener("click", () => {
+      if (!$("#broadcastTitle").value.trim()) $("#broadcastTitle").value = "今晚宿舍安全检查提醒";
+      $("#broadcastContent").value = "各位同事：今晚将进行宿舍安全检查，请提前整理宿舍卫生，保持消防通道畅通，严禁私拉排插和使用大功率电器。谢谢配合。";
+      showToast("群发文案已生成");
+    });
+
+    $("#residentForecastForm").addEventListener("submit", event => {
+      event.preventDefault();
+      state.expectedResidents = Math.max(0, Number($("#expectedResidents").value || 0));
+      state.forecastRemark = $("#forecastRemark").value.trim();
+      saveState();
+      renderAll();
+      showToast("库存预警已更新");
+    });
+
+    $("#materialName").addEventListener("change", () => {
+      const material = state.materials.find(item => item.name === $("#materialName").value);
+      $("#materialPrice").value = material?.price || "";
+    });
+
+    $("#materialForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const name = $("#materialName").value;
+      const qty = Math.max(1, Number($("#materialQty").value));
+      const move = $("input[name='materialMove']:checked").value;
+      const material = state.materials.find(item => item.name === name);
+      let unitPrice = Math.max(0, Number($("#materialPrice").value || material?.price || 0));
+      if (material) {
+        if (unitPrice > 0) material.price = unitPrice;
+        if (move === "入库") material.stock += qty;
+        if (move === "入库") material.purchasing = Math.max(0, material.purchasing - qty);
+        if (move === "认领") {
+          material.stock = Math.max(0, material.stock - qty);
+          material.claimed += qty;
+        }
+        if (move === "采购") material.purchasing += qty;
+        if (move === "耗损") {
+          material.stock = Math.max(0, material.stock - qty);
+          material.loss += qty;
+        }
+        if (move === "盘点") material.stock = qty;
+        unitPrice = material.price;
+      }
+      state.materialLogs.push({
+        id: nextId("WZ", state.materialLogs),
+        name,
+        move,
+        qty,
+        unitPrice,
+        cost: qty * unitPrice,
+        handler: $("#materialHandler").value.trim(),
+        remark: $("#materialRemark").value.trim(),
+        time: formatTime(),
+        date: todayISO()
+      });
+      event.currentTarget.reset();
+      saveState();
+      renderAll();
+      showToast("物资登记已保存");
+    });
+
+    $("#moduleForm").addEventListener("submit", event => {
+      event.preventDefault();
+      if (!state.moduleRecords[currentModule]) state.moduleRecords[currentModule] = [];
+      state.moduleRecords[currentModule].push({
+        id: nextId("YW", Object.values(state.moduleRecords).flat()),
+        item: $("#moduleItem").value.trim(),
+        note: $("#moduleNote").value.trim(),
+        time: formatTime(),
+        date: todayISO()
+      });
+      event.currentTarget.reset();
+      saveState();
+      const feature = featureList.find(item => item.key === currentModule);
+      renderModuleDetail(feature);
+      showToast("业务记录已保存");
+    });
+
+    $("#chatForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const text = $("#chatInput").value.trim();
+      if (!text) return;
+      state.chat.push({ role: "user", text });
+      state.chat.push({ role: "ai", text: aiReply(text) });
+      $("#chatInput").value = "";
+      saveState();
+      renderChat();
+    });
+
+    $("#exportInspectionData").addEventListener("click", () => {
+      const rows = [
+        ["编号", "日期", "时间", "楼栋", "房号", "床号", "检查项", "检查结果", "复查来源", "问题说明"],
+        ...state.inspections.map(item => [
+          item.id,
+          item.date,
+          item.time,
+          item.building || "",
+          item.room || "",
+          item.bed || "",
+          item.items.join("、"),
+          item.result,
+          item.reviewOf || "",
+          item.note || ""
+        ])
+      ];
+      downloadCsv(`巡检分析-${todayISO()}.csv`, rows);
+      showToast("巡检分析已导出");
+    });
+
+    $("#exportData").addEventListener("click", () => {
+      const rows = [
+        ["类型", "编号", "位置/对象", "状态/动作", "说明", "金额", "日期", "时间"],
+        ...state.inspections.map(item => ["巡检", item.id, inspectionLocation(item), item.result, item.note || item.items.join("、"), "", item.date, item.time]),
+        ...state.repairs.map(item => ["报修", item.id, item.location, item.status, item.desc, "", item.date, item.time]),
+        ...state.broadcasts.map(item => ["群发", item.id, item.recipients.join("、"), item.level, item.title, "", item.date, item.time]),
+        ...state.materialLogs.map(item => ["物资", item.id, item.name, item.move, `${item.remark || ""} 数量${item.qty} 单价${money(item.unitPrice)}`, money(item.cost), item.date, item.time])
+      ];
+      downloadCsv(`制造中心宿舍日报-${todayISO()}.csv`, rows);
+      showToast("日报已导出");
+    });
+
+    function downloadCsv(filename, rows) {
+      const csv = rows.map(row => row.map(cell => `"${String(cell ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
+      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    renderAll();
+    restoreLogin();
+  </script>
+</body>
+</html>
